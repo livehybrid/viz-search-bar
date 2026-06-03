@@ -68,6 +68,9 @@ jobs:
                 --exclude '.editorconfig' \
                 --exclude '.prettierrc' \
                 --exclude '.babelrc' \
+                --exclude '.npmrc' \
+                --exclude '*.bak' \
+                --exclude '*.LICENSE.txt' \
                 --exclude 'stage' \
                 --exclude 'dist' \
                 --exclude 'node_modules' \
