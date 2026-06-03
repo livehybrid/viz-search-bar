@@ -110,7 +110,15 @@
         }
         wrap.addEventListener('submit', submit);
 
-        // re-apply on resize/theme not needed; options listener covers edits
+        /*
+         * autoSubmitOnLoad: seed the token from the pre-filled value as soon as
+         * the dashboard is ready. Retried a few times to beat the race between
+         * the iframe booting and the panel's drilldown handler registering
+         * (setToken is idempotent, so repeat fires are harmless).
+         */
+        if (opts.autoSubmitOnLoad && input.value) {
+            [350, 900, 1800].forEach(function (ms) { setTimeout(function () { submit(); }, ms); });
+        }
     }
 
     boot();

@@ -17,7 +17,8 @@
       "buttonLabel":  { "type": "string", "description": "Search button label.", "default": "Search" },
       "tokenName":    { "type": "string", "description": "Echoed in the drilldown payload as `name` (useful when wiring several bars).", "default": "search_query" },
       "initialValue": { "type": "string", "description": "Pre-filled query text.", "default": "" },
-      "accentColor":  { "type": "string", "description": "Button and focus accent colour (hex).", "default": "#00a4fc" }
+      "accentColor":  { "type": "string", "description": "Button and focus accent colour (hex).", "default": "#00a4fc" },
+      "autoSubmitOnLoad": { "type": "boolean", "description": "Seed the token from the pre-filled value automatically on load (no click needed).", "default": false }
     },
     "editorConfig": [
       {
@@ -28,7 +29,8 @@
           [{ "editor": "editor.text", "label": "Button label",  "option": "buttonLabel"  }],
           [{ "editor": "editor.text", "label": "Token name",    "option": "tokenName"    }],
           [{ "editor": "editor.text", "label": "Initial value", "option": "initialValue" }],
-          [{ "editor": "editor.color","label": "Accent colour", "option": "accentColor"  }]
+          [{ "editor": "editor.color","label": "Accent colour", "option": "accentColor"  }],
+          [{ "editor": "editor.checkbox","label": "Auto-submit on load", "option": "autoSubmitOnLoad" }]
         ]
       }
     ]
