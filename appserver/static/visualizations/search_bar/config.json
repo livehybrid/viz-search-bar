@@ -1,0 +1,36 @@
+{
+  "showTitleAndDescription": true,
+  "includeInToolbar": true,
+  "showDrilldown": true,
+  "hasEventHandlers": true,
+  "config": {
+    "name": "Search Bar",
+    "description": "A Splunk-styled search input. On submit it fires a drilldown carrying the typed text, so a drilldown.setToken handler can capture it into a dashboard token.",
+    "category": "Custom",
+    "dataContract": {
+      "requiredDataSources": [],
+      "optionalDataSources": ["primary"]
+    },
+    "size": { "initialWidth": 600, "initialHeight": 56 },
+    "optionsSchema": {
+      "placeholder":  { "type": "string", "description": "Input placeholder text.", "default": "Type a search and press Enter…" },
+      "buttonLabel":  { "type": "string", "description": "Search button label.", "default": "Search" },
+      "tokenName":    { "type": "string", "description": "Echoed in the drilldown payload as `name` (useful when wiring several bars).", "default": "search_query" },
+      "initialValue": { "type": "string", "description": "Pre-filled query text.", "default": "" },
+      "accentColor":  { "type": "string", "description": "Button and focus accent colour (hex).", "default": "#00a4fc" }
+    },
+    "editorConfig": [
+      {
+        "label": "Search Bar",
+        "open": true,
+        "layout": [
+          [{ "editor": "editor.text", "label": "Placeholder",   "option": "placeholder"  }],
+          [{ "editor": "editor.text", "label": "Button label",  "option": "buttonLabel"  }],
+          [{ "editor": "editor.text", "label": "Token name",    "option": "tokenName"    }],
+          [{ "editor": "editor.text", "label": "Initial value", "option": "initialValue" }],
+          [{ "editor": "editor.color","label": "Accent colour", "option": "accentColor"  }]
+        ]
+      }
+    ]
+  }
+}

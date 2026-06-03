@@ -1,0 +1,4 @@
+*.tar.gz
+*.spl
+__pycache__/
+.DS_Store

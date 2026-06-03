@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "2.0.0",
+  "info": {
+    "title": "Search Bar Visualization",
+    "id": { "group": null, "name": "viz-search-bar", "version": "1.0.0" },
+    "author": [{ "name": "Will Searle", "email": "will@livehybrid.com", "company": "LiveHybrid" }],
+    "releaseDate": null,
+    "description": "A Splunk-styled search bar custom visualization for Dashboard Studio. On submit it fires a drilldown carrying the typed text, so a drilldown.setToken event handler can capture it into a dashboard token.",
+    "classification": { "intendedAudience": "individual", "categories": ["Visualization"], "developmentStatus": "production" },
+    "commonInformationModels": null,
+    "license": { "name": "Apache-2.0" },
+    "privacyPolicy": null,
+    "releaseNotes": null
+  },
+  "dependencies": {},
+  "tasks": []
+}
