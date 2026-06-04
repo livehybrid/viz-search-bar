@@ -109,12 +109,31 @@ class App extends React.Component {
     }
 }
 
+// Surface any error visibly inside the box (append-only banner — doesn't wipe a working UI).
+function showError(msg) {
+    const root = document.getElementById('root');
+    if (!root) return;
+    const d = document.createElement('div');
+    d.style.cssText = 'position:absolute;bottom:0;left:0;right:0;max-height:60%;overflow:auto;'
+        + 'color:#ff8080;background:rgba(0,0,0,0.9);font:11px/1.4 monospace;padding:6px;white-space:pre-wrap;z-index:99999';
+    d.textContent = 'viz-search-bar error: ' + String(msg);
+    root.appendChild(d);
+}
+if (typeof window !== 'undefined') {
+    window.addEventListener('error', (e) => showError((e.error && e.error.stack) || e.message));
+    window.addEventListener('unhandledrejection', (e) => showError('promise: ' + ((e.reason && e.reason.message) || e.reason)));
+}
+
 function boot() {
     const a = api(); const root = document.getElementById('root');
     if (!a || !root) { setTimeout(boot, 25); return; }
     document.documentElement.style.cssText = 'height:100%;margin:0;';
     document.body.style.cssText = 'height:100%;margin:0;background:transparent;';
-    root.style.cssText = 'position:absolute;inset:0;';
-    ReactDOM.render(<App />, root);
+    root.style.cssText = 'position:absolute;inset:0;min-height:44px;';
+    try {
+        ReactDOM.render(<App />, root);
+    } catch (err) {
+        showError((err && err.stack) || err);
+    }
 }
 boot();
