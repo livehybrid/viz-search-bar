@@ -1,21 +1,20 @@
 /*
  * Search Bar — Dashboard Studio custom visualization.
  *
- * Renders the official @splunk/react-search SearchBar (or its ACE SPL Input).
- * If the real component fails to resolve/render inside the sandboxed Studio
- * iframe, a React ErrorBoundary degrades gracefully to a styled native input
- * with identical behaviour — so the viz is never a blank box and always sets
- * its token. On submit it fires triggerDrilldown -> drilldown.setToken.
+ * Renders the official @splunk/react-search components (named exports):
+ *   component "bar"   -> Bar   (full SPL SearchBar + time-range picker)
+ *   component "input" -> Input (clean ACE SPL editor — ideal for pipeline stages)
+ *
+ * On Enter (or auto-submit on load) it fires triggerDrilldown -> drilldown.setToken.
+ * The custom-viz iframe is sandboxed WITHOUT allow-forms, so we never use a
+ * <form>/submit — submission is pure JS (onEnter / button onClick).
+ * If the real component throws inside the sandbox, an ErrorBoundary degrades to
+ * a styled native input (also formless) so the viz is never a blank box.
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { SplunkThemeProvider } from '@splunk/themes';
-import * as SearchNS from '@splunk/react-search';
-import * as InputNS from '@splunk/react-search/components/Input';
-
-// Defensive interop — handle default / named / module-as-component shapes.
-const SearchBar = (SearchNS && (SearchNS.default || SearchNS.SearchBar || SearchNS.Search)) || SearchNS;
-const SplInput = (InputNS && (InputNS.default || InputNS.Input)) || InputNS;
+import { Bar as SplBar, Input as SplInput } from '@splunk/react-search';
 
 const api = () => globalThis.DashboardExtensionAPI;
 function readOptions() {
@@ -40,33 +39,28 @@ function fire(tokenName, v) {
     } catch (err) { try { api().setError({ message: String(err) }); } catch (e2) { /* noop */ } }
 }
 
-// Styled native fallback (also used for the "input" variant) — looks Splunk-ish, always works.
+/* Formless styled fallback (no <form> — sandbox blocks form submission). */
 function FallbackInput({ value, placeholder, accent, onChange, onEnter }) {
-    const accentColor = accent || '#00a4fc';
     return (
-        <form
-            style={{ display: 'flex', gap: 8, width: '100%' }}
-            onSubmit={(e) => { e.preventDefault(); onEnter(); }}
-        >
+        <div style={{ display: 'flex', gap: 8, width: '100%' }}>
             <input
-                type="text"
-                value={value}
-                placeholder={placeholder}
+                type="text" value={value} placeholder={placeholder}
                 onChange={(e) => onChange(e)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); onEnter(); } }}
                 style={{
-                    flex: 1, height: 36, boxSizing: 'border-box', padding: '0 12px',
-                    borderRadius: 4, border: '1px solid #6b7785', background: '#0b0c0e',
-                    color: '#e7e9ea', fontSize: 14, outline: 'none', fontFamily: 'monospace',
+                    flex: 1, height: 36, boxSizing: 'border-box', padding: '0 12px', borderRadius: 4,
+                    border: '1px solid #6b7785', background: '#0b0c0e', color: '#e7e9ea',
+                    fontSize: 14, outline: 'none', fontFamily: 'monospace',
                 }}
             />
             <button
-                type="submit"
+                type="button" onClick={() => onEnter()}
                 style={{
                     height: 36, padding: '0 18px', border: 'none', borderRadius: 4,
-                    background: accentColor, color: '#fff', fontWeight: 600, cursor: 'pointer',
+                    background: accent || '#00a4fc', color: '#fff', fontWeight: 600, cursor: 'pointer',
                 }}
             >Run ▸</button>
-        </form>
+        </div>
     );
 }
 
@@ -98,17 +92,15 @@ class App extends React.Component {
         const onChange = (e, data) => this.setState({ value: valueFromChange(e, data) });
         const onEnter = () => fire(tokenName, this.state.value);
         const common = { value, placeholder, onChange, onEnter };
+        const RealComp = opts.component === 'input' ? SplInput : SplBar;
         const fallback = (
             <FallbackInput value={value} placeholder={placeholder} accent={opts.accentColor}
                 onChange={onChange} onEnter={onEnter} />
         );
-        // "input" variant intentionally uses the lightweight, reliable styled input.
-        const useReal = opts.component !== 'input';
-        const RealComp = SearchBar;
         return (
             <SplunkThemeProvider family="prisma" colorScheme="dark" density="comfortable">
                 <div style={{ width: '100%', padding: 4 }}>
-                    {useReal && typeof RealComp === 'function'
+                    {typeof RealComp === 'function'
                         ? <Boundary fallback={fallback}><RealComp {...common} /></Boundary>
                         : fallback}
                 </div>

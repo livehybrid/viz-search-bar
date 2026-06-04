@@ -6,3 +6,5 @@ stage/
 *.bak
 __pycache__/
 .DS_Store
+*.dev.js
+probe.js
