@@ -1,0 +1,19 @@
+{
+  "name": "viz-search-bar-dev",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Dev tooling for the viz-search-bar Splunk app (jest logic/config tests + Playwright e2e). Not shipped in the app package. The shipped bundle is built by webpack from appserver/static/visualizations/search_bar/src/.",
+  "scripts": {
+    "test": "jest",
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testMatch": [
+      "<rootDir>/tests/**/*.test.js"
+    ]
+  }
+}
