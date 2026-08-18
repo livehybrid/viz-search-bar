@@ -13,8 +13,9 @@
     },
     "size": { "initialWidth": 600, "initialHeight": 56 },
     "optionsSchema": {
+      "component":    { "type": "string", "enum": ["bar", "input"], "description": "Which @splunk/react-search component to render: 'bar' (full SearchBar with time-range picker) or 'input' (clean SPL editor).", "default": "bar" },
       "placeholder":  { "type": "string", "description": "Input placeholder text.", "default": "Type a search and press Enter…" },
-      "buttonLabel":  { "type": "string", "description": "Search button label.", "default": "Search" },
+      "buttonLabel":  { "type": "string", "description": "Search button label (fallback input only — the Bar renders its own).", "default": "Search" },
       "tokenName":    { "type": "string", "description": "Echoed in the drilldown payload as `name` (useful when wiring several bars).", "default": "search_query" },
       "initialValue": { "type": "string", "description": "Pre-filled query text.", "default": "" },
       "accentColor":  { "type": "string", "description": "Button and focus accent colour (hex).", "default": "#00a4fc" },
@@ -25,6 +26,11 @@
         "label": "Search Bar",
         "open": true,
         "layout": [
+          [{ "editor": "editor.select", "label": "Component", "option": "component",
+             "editorProps": { "values": [
+               { "label": "Search bar (with time picker)", "value": "bar" },
+               { "label": "SPL input only", "value": "input" }
+             ] } }],
           [{ "editor": "editor.text", "label": "Placeholder",   "option": "placeholder"  }],
           [{ "editor": "editor.text", "label": "Button label",  "option": "buttonLabel"  }],
           [{ "editor": "editor.text", "label": "Token name",    "option": "tokenName"    }],

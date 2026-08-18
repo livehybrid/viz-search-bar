@@ -8,3 +8,7 @@ __pycache__/
 .DS_Store
 *.dev.js
 probe.js
+
+# Dev test tooling output (never committed)
+e2e-results/
+test-results/
