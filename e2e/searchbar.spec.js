@@ -17,6 +17,11 @@ const MGMT_URL = process.env.SPLUNK_MGMT_URL || 'https://localhost:8089';
 const USER = process.env.SPLUNK_USER || 'admin';
 const PASS = process.env.SPLUNK_PASSWORD || 'Changeme1!';
 const APP = 'viz-search-bar';
+// The dashboard lives in Search & Reporting, as a user's would. The viz app is
+// is_visible = false, and Splunk 10.6 returns 404 for a view inside a hidden
+// app (10.4 served it), so hosting the test dashboard there tested a
+// placement no user has. The viz is exported system-wide in default.meta.
+const HOST_APP = 'search';
 const VIEW = 'searchbar_e2e';
 
 const TOKEN_VALUE = 'hello_e2e_token';
@@ -73,12 +78,12 @@ test.beforeAll(async () => {
         httpCredentials: { username: USER, password: PASS },
     });
     // Create, or update if a previous run left it behind.
-    const create = await api.post(`/servicesNS/${USER}/${APP}/data/ui/views?output_mode=json`, {
+    const create = await api.post(`/servicesNS/${USER}/${HOST_APP}/data/ui/views?output_mode=json`, {
         form: { name: VIEW, 'eai:data': DASHBOARD_XML },
     });
     if (!create.ok()) {
         const update = await api.post(
-            `/servicesNS/${USER}/${APP}/data/ui/views/${VIEW}?output_mode=json`,
+            `/servicesNS/${USER}/${HOST_APP}/data/ui/views/${VIEW}?output_mode=json`,
             { form: { 'eai:data': DASHBOARD_XML } }
         );
         if (!update.ok()) {
@@ -133,7 +138,7 @@ test('Search Bar sets a dashboard token that drives another panel', async ({ pag
     // Open the dashboard and wait for the search bar to mount (in any frame).
     // The main frame's own login/search chrome is excluded by only accepting
     // matches inside a NON-main frame (the viz iframe).
-    await page.goto(`/en-GB/app/${APP}/${VIEW}`);
+    await page.goto(`/en-GB/app/${HOST_APP}/${VIEW}`);
     let found = null;
     const deadline = Date.now() + 120000;
     while (Date.now() < deadline && !found) {
