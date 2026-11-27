@@ -100,7 +100,7 @@ test('wrong-type options fall back to defaults: autoSubmitOnLoad "false" does no
     expect(w.echoSearchesFor('must_not_autosubmit'),
         'autoSubmitOnLoad:"false" submitted the initial value on load').toEqual([]);
     // Positive control: the same spy sees a search once the user submits.
-    await h.typeAndSubmit(page, bar, 'after_bad_opts');
+    await h.typeAndSubmit(page, bar, 'after_bad_opts', { replace: true });
     await h.expectTokenFlow(page, w, 'after_bad_opts');
     expect(w.vizErrors()).toEqual([]);
 });
@@ -114,12 +114,29 @@ test('an object initialValue never reaches the editor or the token as "[object O
     expect(w.vizErrors()).toEqual([]);
 });
 
-for (const [view, label] of [['searchbar_e2e_empty', 'empty'], ['searchbar_e2e_malformed', 'malformed']]) {
-    test(`an attached ${label} data source does not stop the bar rendering or setting tokens`, async ({ page }) => {
-        const { w, bar } = await open(page, view);
-        await h.typeAndSubmit(page, bar, `with_${label}_ds`);
-        await h.expectTokenFlow(page, w, `with_${label}_ds`);
-        await h.expectNoBanner(bar);
-        expect(w.vizErrors()).toEqual([]);
-    });
-}
+test('an attached malformed data source does not stop the bar rendering or setting tokens', async ({ page }) => {
+    const { w, bar } = await open(page, 'searchbar_e2e_malformed');
+    await h.typeAndSubmit(page, bar, 'with_malformed_ds');
+    await h.expectTokenFlow(page, w, 'with_malformed_ds');
+    await h.expectNoBanner(bar);
+    expect(w.vizErrors()).toEqual([]);
+});
+
+// Platform behaviour, pinned so it is not mistaken for a viz bug: when a
+// bound data source returns zero rows, Studio replaces the panel with its own
+// no-results placeholder (a Warning icon) and never mounts the viz. The bar
+// needs no data, so the README says not to bind one.
+test('an attached empty data source: Studio shows its placeholder instead of the bar', async ({ page }) => {
+    const w = h.watch(page);
+    await h.login(page);
+    await page.goto(`/en-GB/app/${h.HOST_APP}/searchbar_e2e_empty`);
+    const panel = page.getByLabel('Visualization Search', { exact: true });
+    await expect(panel.getByRole('img', { name: 'Warning' })).toBeVisible({ timeout: 60000 });
+    // The empty search did run (positive control for the claim below).
+    expect(w.searches.some((s) => s.includes('where 1=0'))).toBe(true);
+    await page.waitForTimeout(5000);
+    for (const f of page.frames()) {
+        if (f === page.mainFrame()) continue;
+        expect(await f.$('input[type="text"], textarea, .ace_scroller').catch(() => null)).toBeNull();
+    }
+});

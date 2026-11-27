@@ -28,6 +28,13 @@ The drilldown payload is flat, matching Studio's parent-side whitelist (only
 | `earliest` (or `row.earliest.value`) | picked time-range start (Bar only) |
 | `latest` (or `row.latest.value`) | picked time-range end (Bar only) |
 
+The bar needs no data. Do not bind a `primary` data source to it: when that
+search returns zero rows, Dashboard Studio replaces the panel with its own
+no-results placeholder and the bar disappears.
+
+Options with the wrong type (for example `autoSubmitOnLoad: "false"` as a string,
+or an object as `initialValue`) fall back to their defaults.
+
 Options: `component` (`bar` = full SearchBar with time picker, `input` = clean
 SPL editor), `placeholder`, `buttonLabel`, `tokenName`, `initialValue`,
 `accentColor`, `autoSubmitOnLoad`.
