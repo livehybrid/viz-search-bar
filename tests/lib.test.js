@@ -87,3 +87,48 @@ describe('applyBarDelta', () => {
         expect(applyBarDelta(null)).toEqual({});
     });
 });
+
+describe('normaliseOptions (wrong-type options fall back to defaults)', () => {
+    const { normaliseOptions, DEFAULTS } = require(
+        '../appserver/static/visualizations/search_bar/src/lib'
+    );
+
+    test('no options at all gives every documented default', () => {
+        expect(normaliseOptions(undefined)).toEqual(DEFAULTS);
+        expect(normaliseOptions([])).toEqual(DEFAULTS);
+    });
+
+    test('valid values pass through unchanged', () => {
+        const good = {
+            component: 'input', placeholder: 'p', buttonLabel: 'Go', tokenName: 'q',
+            initialValue: 'index=main', accentColor: '#112233', autoSubmitOnLoad: true,
+        };
+        expect(normaliseOptions(good)).toEqual(good);
+    });
+
+    test('autoSubmitOnLoad only turns on for true or "true"', () => {
+        // "false" is a truthy string: before the fix it submitted on every load.
+        for (const v of ['false', 'no', 0, 1, 'yes', {}, null]) {
+            expect([v, normaliseOptions({ autoSubmitOnLoad: v }).autoSubmitOnLoad]).toEqual([v, false]);
+        }
+        expect(normaliseOptions({ autoSubmitOnLoad: 'true' }).autoSubmitOnLoad).toBe(true);
+    });
+
+    test('an object or array initialValue never becomes "[object Object]"', () => {
+        expect(normaliseOptions({ initialValue: { a: 1 } }).initialValue).toBe('');
+        expect(normaliseOptions({ initialValue: ['x'] }).initialValue).toBe('');
+        expect(normaliseOptions({ initialValue: 42 }).initialValue).toBe('42');
+    });
+
+    test('unknown component, blank or non-string text and bad colours use defaults', () => {
+        const o = normaliseOptions({
+            component: 'nonsense', placeholder: '  ', buttonLabel: {}, tokenName: null,
+            accentColor: 'url(javascript:alert(1))',
+        });
+        expect(o.component).toBe('bar');
+        expect(o.placeholder).toBe(DEFAULTS.placeholder);
+        expect(o.buttonLabel).toBe('Search');
+        expect(o.tokenName).toBe('search_query');
+        expect(o.accentColor).toBe('#00a4fc');
+    });
+});

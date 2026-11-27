@@ -201,7 +201,7 @@ jobs:
           npm test
 
   e2e-playwright:
-    name: e2e-playwright (real Splunk token flow)
+    name: e2e-playwright (real Splunk scenarios)
     needs: package
     # Dependabot actors get no secrets/egress guarantees; unit + appinspect still cover them.
     if: github.actor != 'dependabot[bot]'
@@ -214,6 +214,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+      # Splunk refuses searches below 5 GB free in its dispatch dir; the runner
+      # image plus a Splunk image can leave less than that (TA-aws-health,
+      # 26 Nov 2026). Drop preinstalled toolchains this job never uses.
+      - name: Free runner disk
+        run: |
+          df -h / | tail -1
+          sudo rm -r -f /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
+          df -h / | tail -1
       - name: Download staged app
         uses: actions/download-artifact@v8
         with:
@@ -235,7 +243,7 @@ jobs:
         run: |
           npm ci
           npx playwright install --with-deps chromium
-      - name: Run e2e token-flow check
+      - name: Run e2e scenarios
         env:
           SPLUNK_WEB_URL: http://localhost:8000
           SPLUNK_MGMT_URL: https://localhost:8089
