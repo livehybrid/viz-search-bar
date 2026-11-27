@@ -124,17 +124,17 @@ test('an attached malformed data source does not stop the bar rendering or setti
 
 // Platform behaviour, pinned so it is not mistaken for a viz bug: when a
 // bound data source returns zero rows, Studio replaces the panel with its own
-// no-results placeholder (a Warning icon) and never mounts the viz. The bar
-// needs no data, so the README says not to bind one.
+// no-results placeholder and never mounts the viz (10.6 labels it with a
+// Warning icon; 10.4 has no accessible label, so the check is that nothing
+// mounts). The bar needs no data, so the README says not to bind one.
 test('an attached empty data source: Studio shows its placeholder instead of the bar', async ({ page }) => {
     const w = h.watch(page);
     await h.login(page);
     await page.goto(`/en-GB/app/${h.HOST_APP}/searchbar_e2e_empty`);
-    const panel = page.getByLabel('Visualization Search', { exact: true });
-    await expect(panel.getByRole('img', { name: 'Warning' })).toBeVisible({ timeout: 60000 });
-    // The empty search did run (positive control for the claim below).
-    expect(w.searches.some((s) => s.includes('where 1=0'))).toBe(true);
-    await page.waitForTimeout(5000);
+    // The empty search was dispatched (the other scenarios mount within ~5 s
+    // of this point), then give it ample time to have mounted if it would.
+    await expect.poll(() => w.searches.some((s) => s.includes('where 1=0')), { timeout: 60000 }).toBe(true);
+    await page.waitForTimeout(15000);
     for (const f of page.frames()) {
         if (f === page.mainFrame()) continue;
         expect(await f.$('input[type="text"], textarea, .ace_scroller').catch(() => null)).toBeNull();
