@@ -24,11 +24,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { SplunkThemeProvider } from '@splunk/themes';
 import { Bar as SplBar, Input as SplInput } from '@splunk/react-search';
-import { valueFromChange, buildDrilldownPayload, applyBarDelta } from './lib';
+import { valueFromChange, buildDrilldownPayload, applyBarDelta, normaliseOptions } from './lib';
 
 const api = () => globalThis.DashboardExtensionAPI;
+function unwrap(o) { return (o && (o.options || o)) || {}; }
 function readOptions() {
-    try { const o = api().getOptions() || {}; return o.options || o || {}; } catch (e) { return {}; }
+    try { return normaliseOptions(unwrap(api().getOptions())); } catch (e) { return normaliseOptions({}); }
 }
 function fire(tokenName, v, timeRange) {
     try {
@@ -92,7 +93,7 @@ class App extends React.Component {
         super(p);
         const opts = readOptions();
         this.state = { opts };
-        this.latest = { value: String(opts.initialValue || ''), timeRange: null };
+        this.latest = { value: opts.initialValue, timeRange: null };
         this.handleChange = (e, data) => { this.latest.value = valueFromChange(e, data); };
         this.handleBarDelta = (delta) => {
             const d = applyBarDelta(delta);
@@ -101,21 +102,21 @@ class App extends React.Component {
         };
         this.submit = () => {
             const opts2 = this.state.opts;
-            fire(opts2.tokenName || 'search_query', this.latest.value, this.latest.timeRange);
+            fire(opts2.tokenName, this.latest.value, this.latest.timeRange);
         };
         this.handleBarEvent = (evt) => { if (evt === 'submit') this.submit(); };
     }
     componentDidMount() {
         const a = api();
-        if (a.addOptionsListener) a.addOptionsListener((n) => this.setState({ opts: (n && (n.options || n)) || {} }));
+        if (a.addOptionsListener) a.addOptionsListener((n) => this.setState({ opts: normaliseOptions(unwrap(n)) }));
         if (this.state.opts.autoSubmitOnLoad && this.latest.value) {
             [400, 1000, 1900].forEach((ms) => setTimeout(() => this.submit(), ms));
         }
     }
     render() {
         const { opts } = this.state;
-        const placeholder = opts.placeholder || 'Type a search and press Enter…';
-        const initialValue = String(opts.initialValue || '');
+        const placeholder = opts.placeholder;
+        const initialValue = opts.initialValue;
         const fallback = (
             <FallbackInput initialValue={initialValue} placeholder={placeholder} accent={opts.accentColor}
                 buttonLabel={opts.buttonLabel} onChange={this.handleChange} onEnter={this.submit} />

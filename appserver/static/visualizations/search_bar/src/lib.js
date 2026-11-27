@@ -53,4 +53,42 @@ function applyBarDelta(delta) {
     return next;
 }
 
-module.exports = { valueFromChange, buildDrilldownPayload, applyBarDelta };
+/* Viz options as typed in the dashboard JSON can be any type: Studio does not
+ * coerce them against config.json. Each option falls back to its documented
+ * default when it has the wrong type, so a bad value can never change
+ * behaviour (autoSubmitOnLoad: "false" is a truthy string and used to submit
+ * on every load) or leak into the UI ("[object Object]" as the query text). */
+const DEFAULTS = Object.freeze({
+    component: 'bar',
+    placeholder: 'Type a search and press Enter…',
+    buttonLabel: 'Search',
+    tokenName: 'search_query',
+    initialValue: '',
+    accentColor: '#00a4fc',
+    autoSubmitOnLoad: false,
+});
+
+const COLOUR = /^(#[0-9a-f]{3,8}|(rgb|hsl)a?\([0-9.,%\s]+\)|[a-z]{3,20})$/i;
+
+function text(v, fallback, allowEmpty) {
+    if (typeof v === 'number' && Number.isFinite(v)) return String(v);
+    if (typeof v !== 'string') return fallback;
+    if (!allowEmpty && v.trim() === '') return fallback;
+    return v;
+}
+
+function normaliseOptions(raw) {
+    const o = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+    const colour = typeof o.accentColor === 'string' ? o.accentColor.trim() : '';
+    return {
+        component: o.component === 'input' || o.component === 'bar' ? o.component : DEFAULTS.component,
+        placeholder: text(o.placeholder, DEFAULTS.placeholder, false),
+        buttonLabel: text(o.buttonLabel, DEFAULTS.buttonLabel, false),
+        tokenName: text(o.tokenName, DEFAULTS.tokenName, false),
+        initialValue: text(o.initialValue, DEFAULTS.initialValue, true),
+        accentColor: COLOUR.test(colour) ? colour : DEFAULTS.accentColor,
+        autoSubmitOnLoad: o.autoSubmitOnLoad === true || o.autoSubmitOnLoad === 'true',
+    };
+}
+
+module.exports = { valueFromChange, buildDrilldownPayload, applyBarDelta, normaliseOptions, DEFAULTS };
