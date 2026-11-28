@@ -59,7 +59,7 @@ ships in the package):
   handling, and drift guards between `visualizations.conf`, `config.json` and
   the source.
 - **End-to-end (Playwright)** — `npm run e2e`. Boots the **freshly built
-  package** on a real `splunk/splunk:10.4.0` container, creates a Studio
+  package** on a real Splunk container (10.4 and the newest 10.6), creates a Studio
   dashboard via REST, then drives the real thing in a headless browser: types
   into the ACE editor, presses Enter and asserts the token flows into a
   dependent panel — plus a render screenshot artifact.
